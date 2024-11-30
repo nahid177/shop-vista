@@ -1,101 +1,296 @@
-import Image from "next/image";
+"use client"; // Ensure this is a client-side component
 
-export default function Home() {
+import { useState } from "react";
+import { useRouter } from "next/navigation";  // use 'next/navigation' in Next.js 13+
+import {
+  Button,
+  TextField,
+  Grid,
+  Box,
+  Typography,
+  FormHelperText,
+} from "@mui/material";
+
+export default function CreateBuilding() {
+  // Form state and error state management
+  const [formData, setFormData] = useState({
+    buildingName: "",
+    floorName: "",
+    storeName: "",
+    productTypeName: "",
+    categoryName: "",
+    productName: "",
+    productSize: "",
+    color: "",
+    quantity: 0,
+    price: 0,
+  });
+
+  const [errors, setErrors] = useState({
+    buildingName: "",
+    floorName: "",
+    storeName: "",
+    productTypeName: "",
+    categoryName: "",
+    productName: "",
+    productSize: "",
+    color: "",
+    quantity: "",
+    price: "",
+  });
+
+  // Router for navigation
+  const router = useRouter();
+
+  // Input change handler
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Form submission handler
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const tempErrors = { ...errors };
+    let formIsValid = true;
+
+    // Validation
+    if (!formData.buildingName) {
+      tempErrors.buildingName = "Building name is required";
+      formIsValid = false;
+    } else {
+      tempErrors.buildingName = "";
+    }
+
+    if (!formData.storeName) {
+      tempErrors.storeName = "Store name is required";
+      formIsValid = false;
+    } else {
+      tempErrors.storeName = "";
+    }
+
+    if (!formData.productTypeName) {
+      tempErrors.productTypeName = "Product type is required";
+      formIsValid = false;
+    } else {
+      tempErrors.productTypeName = "";
+    }
+
+    // Set errors state
+    setErrors(tempErrors);
+
+    if (formIsValid) {
+      const formattedData = {
+        buildingName: formData.buildingName,
+        floors: [
+          {
+            floorName: formData.floorName,
+            stores: [
+              {
+                storeName: formData.storeName,
+                productTypes: [
+                  {
+                    productTypeName: formData.productTypeName,
+                    categories: [
+                      {
+                        categoryName: formData.categoryName,
+                        products: [
+                          {
+                            productName: formData.productName,
+                            productSize: formData.productSize,
+                            color: formData.color,
+                            quantity: formData.quantity,
+                            price: formData.price,
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      try {
+        const response = await fetch("/api/building", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formattedData),
+        });
+
+        if (response.ok) {
+          router.push("/success");  // Redirect to success page
+        } else {
+          console.error("Error creating building");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <Box sx={{ maxWidth: "800px", margin: "0 auto", padding: 4 }}>
+      <Typography variant="h4" gutterBottom>Create New Building</Typography>
+      <form onSubmit={handleSubmit}>
+        <Grid container spacing={2}>
+          {/* Building Name */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Building Name"
+              variant="outlined"
+              fullWidth
+              name="buildingName"
+              value={formData.buildingName}
+              onChange={handleInputChange}
+              error={Boolean(errors.buildingName)}
+              helperText={errors.buildingName}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          </Grid>
+
+          {/* Floor Name */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Floor Name"
+              variant="outlined"
+              fullWidth
+              name="floorName"
+              value={formData.floorName}
+              onChange={handleInputChange}
+              error={Boolean(errors.floorName)}
+              helperText={errors.floorName}
+            />
+          </Grid>
+
+          {/* Store Name */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Store Name"
+              variant="outlined"
+              fullWidth
+              name="storeName"
+              value={formData.storeName}
+              onChange={handleInputChange}
+              error={Boolean(errors.storeName)}
+              helperText={errors.storeName}
+            />
+          </Grid>
+
+          {/* Product Type */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Product Type"
+              variant="outlined"
+              fullWidth
+              name="productTypeName"
+              value={formData.productTypeName}
+              onChange={handleInputChange}
+              error={Boolean(errors.productTypeName)}
+              helperText={errors.productTypeName}
+            />
+          </Grid>
+
+          {/* Category Name */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Category"
+              variant="outlined"
+              fullWidth
+              name="categoryName"
+              value={formData.categoryName}
+              onChange={handleInputChange}
+              error={Boolean(errors.categoryName)}
+              helperText={errors.categoryName}
+            />
+          </Grid>
+
+          {/* Product Name */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Product Name"
+              variant="outlined"
+              fullWidth
+              name="productName"
+              value={formData.productName}
+              onChange={handleInputChange}
+              error={Boolean(errors.productName)}
+              helperText={errors.productName}
+            />
+          </Grid>
+
+          {/* Product Size */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Product Size"
+              variant="outlined"
+              fullWidth
+              name="productSize"
+              value={formData.productSize}
+              onChange={handleInputChange}
+              error={Boolean(errors.productSize)}
+              helperText={errors.productSize}
+            />
+          </Grid>
+
+          {/* Color */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Color"
+              variant="outlined"
+              fullWidth
+              name="color"
+              value={formData.color}
+              onChange={handleInputChange}
+              error={Boolean(errors.color)}
+              helperText={errors.color}
+            />
+          </Grid>
+
+          {/* Quantity */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Quantity"
+              variant="outlined"
+              fullWidth
+              name="quantity"
+              value={formData.quantity}
+              onChange={handleInputChange}
+              error={Boolean(errors.quantity)}
+              helperText={errors.quantity}
+              type="number"
+            />
+          </Grid>
+
+          {/* Price */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label="Price"
+              variant="outlined"
+              fullWidth
+              name="price"
+              value={formData.price}
+              onChange={handleInputChange}
+              error={Boolean(errors.price)}
+              helperText={errors.price}
+              type="number"
+            />
+          </Grid>
+        </Grid>
+
+        <Box sx={{ display: "flex", justifyContent: "center", marginTop: 2 }}>
+          <Button type="submit" variant="contained" color="primary">
+            Submit
+          </Button>
+        </Box>
+      </form>
+    </Box>
   );
 }
